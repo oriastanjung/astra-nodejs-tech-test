@@ -45,16 +45,8 @@ const getFileMetadata = async (filePath) => {
         size: stats.size,
         isDirectory: stats.isDirectory(),
         createdAt: createdAt,
-        ...(stats.isDirectory() && { children: await getDirectoryChildren(filePath) })
+        
     };
-};
-
-const getDirectoryChildren = async (dirPath) => {
-    const files = await fs.readdir(dirPath);
-    const fileDetailsPromises = files.map(file =>
-        getFileMetadata(path.join(dirPath, file))
-    );
-    return await Promise.all(fileDetailsPromises);
 };
 
 const main = async () => {
