@@ -42,7 +42,7 @@ const getFileMetadata = async (filePath) => {
         filePath: formattedPath,
         size: stats.size,
         createdAt: createdAt,
-        isDirectory: stats.isDirectory(), // Correct usage for checking if it's a directory
+        isDirectory: stats.isDirectory(),
     };
 };
 
@@ -56,5 +56,5 @@ const main = async () => {
     }
 };
 
-main()
+main();
 module.exports = getFileTree; // Change this to export getFileTree instead of main
