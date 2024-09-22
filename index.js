@@ -1,18 +1,5 @@
 const fs = require('fs').promises;
 const path = require('path');
-const zlib = require('zlib');
-
-const extractGzFile = async (filePath, outputDir) => {
-    return new Promise((resolve, reject) => {
-        const gunzip = zlib.createGunzip();
-        const source = fs.createReadStream(filePath);
-        const destination = fs.createWriteStream(path.join(outputDir, path.basename(filePath, '.gz')));
-
-        source.pipe(gunzip).pipe(destination)
-            .on('finish', resolve)
-            .on('error', reject);
-    });
-};
 
 const getFileTree = async (dirPath) => {
     try {
@@ -26,23 +13,15 @@ const getFileTree = async (dirPath) => {
         console.log(`Stats: ${JSON.stringify(stats)}`);
 
         if (stats.isFile()) {
-            // Jika file .gz, ekstrak terlebih dahulu
-            if (resolvedPath.endsWith('.gz')) {
-                const outputDir = path.dirname(resolvedPath);
-                await extractGzFile(resolvedPath, outputDir);
-                // Setelah ekstrak, dapatkan metadata file yang baru
-                const extractedFilePath = path.join(outputDir, path.basename(resolvedPath, '.gz'));
-                return [await getFileMetadata(extractedFilePath)];
-            }
             return [await getFileMetadata(resolvedPath)];
         } else if (stats.isDirectory()) {
             const files = await fs.readdir(resolvedPath);
             console.log(`Files: ${files}`);
             const fileDetailsPromises = files.map(file => 
-                getFileTree(path.join(resolvedPath, file)) // Recursively call getFileTree
+                getFileMetadata(path.join(resolvedPath, file))
             );
             const fileDetails = await Promise.all(fileDetailsPromises);
-            return fileDetails.flat().sort((a, b) => a.fileName.localeCompare(b.fileName));
+            return fileDetails.sort((a, b) => a.fileName.localeCompare(b.fileName));
         }
     } catch (error) {
         console.error(`Error: ${error.message}`);
@@ -68,7 +47,7 @@ const getFileMetadata = async (filePath) => {
 };
 
 const main = async () => {
-    const testPath = path.join(__dirname, 'tmp');
+    const testPath = path.join(__dirname, 'tmp', 'test_dir');
     try {
         const result = await getFileTree(testPath);
         console.log(JSON.stringify(result, null, 2));
@@ -78,4 +57,4 @@ const main = async () => {
 };
 
 main();
-module.exports = getFileTree; // Export getFileTree
+module.exports = getFileTree; // Change this to export getFileTree instead of main
