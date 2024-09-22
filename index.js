@@ -5,13 +5,9 @@ const getFileTree = async (dirPath) => {
     try {
         console.log(`Resolving path: ${dirPath}`);
         const resolvedPath = path.resolve(dirPath);
-        
+
         // Check if the path exists before attempting to get stats
-        try {
-            await fs.access(resolvedPath);
-        } catch (accessError) {
-            throw new Error('Invalid Path');
-        }
+        await fs.access(resolvedPath);
 
         const stats = await fs.stat(resolvedPath);
         console.log(`Stats: ${JSON.stringify(stats)}`);
@@ -29,10 +25,7 @@ const getFileTree = async (dirPath) => {
         }
     } catch (error) {
         console.error(`Error: ${error.message}`);
-        if (error.code === 'ENOENT') {
-            throw new Error('Invalid Path');
-        }
-        throw error; 
+        throw new Error('Invalid Path');
     }
 };
 
@@ -49,7 +42,7 @@ const getFileMetadata = async (filePath) => {
         filePath: formattedPath,
         size: stats.size,
         createdAt: createdAt,
-        isDirectory: stats.isDirectory(),
+        isDirectory: stats.isDirectory(), // Correct usage for checking if it's a directory
     };
 };
 
@@ -63,4 +56,5 @@ const main = async () => {
     }
 };
 
-module.exports = main;
+main()
+module.exports = getFileTree; // Change this to export getFileTree instead of main
