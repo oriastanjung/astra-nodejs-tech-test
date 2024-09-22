@@ -6,37 +6,34 @@ const utils = require('./utils');
 const path = require('path');
 const ROOT = path.resolve('.');
 
-describe('fs_intermediate', function() {
-    this.timeout(5000); // Increase timeout to 5 seconds
-
+describe('fs_intermediate', () => {
     let mockFs;
-
-    before(done => {
+    before((done) => {
         utils.generateTempDirectory()
             .then(s => {
                 mockFs = s;
                 done();
             })
-            .catch(done); // Handle errors in setup
     });
 
-    after(done => {
+    after((done) => {
         utils.cleanUp()
-            .then(() => done())
-            .catch(done); // Handle cleanup errors
+            .then(() => {
+                done();
+            })
     });
 
     it('Should reject with a Invalid Path Error if the file/folder does not exist', done => {
-        app(path.join(ROOT, 'logs'))
+        app(ROOT + '/logs')
             .catch(err => {
                 err.message.should.eql('Invalid Path');
-                done();
+                done()
             })
-            .catch(done); // Handle any unexpected errors
     });
 
-    it('Should return the listing data for a file', done => {
-        app(path.join(ROOT, 'tmp', 'file.txt'))
+
+    it('Should have return the listing data for a file', done => {
+        app(ROOT + '/tmp/file.txt')
             .then(result => {
                 Array.isArray(result).should.eql(true);
                 result.length.should.eql(1);
@@ -45,11 +42,10 @@ describe('fs_intermediate', function() {
                 result[0].size.should.eql(94953);
                 done();
             })
-            .catch(done); // Catch any unexpected errors
     });
 
-    it('Should return the details for a zipped file', done => {
-        app(path.join(ROOT, 'tmp', 'file.gz'))
+    it('Should have return the details for a zipped file', done => {
+        app(ROOT + '/tmp/file.gz')
             .then(result => {
                 Array.isArray(result).should.eql(true);
                 result.length.should.eql(1);
@@ -58,27 +54,27 @@ describe('fs_intermediate', function() {
                 result[0].size.should.eql(9945);
                 done();
             })
-            .catch(done); // Catch unexpected errors
-    });
+    })
 
     it('Should return the correct details for a directory', done => {
-        app(path.join(ROOT, 'tmp', 'test_dir'))
+        app(ROOT + '/tmp/test_dir')
             .then(result => {
                 Array.isArray(result).should.eql(true);
                 result.length.should.eql(3);
                 utils.result.forEach((fileDetails, i) => {
-                    result[i].fileName.should.eql(fileDetails.fileName);
-                    result[i].filePath.should.eql(fileDetails.filePath);
-                    result[i].size.should.eql(fileDetails.size);
-                    result[i].isDirectory.should.eql(fileDetails.isDirectory);
+                    result[i].fileName.should.be.eql(fileDetails.fileName);
+                    result[i].filePath.should.be.eql(fileDetails.filePath);
+                    result[i].size.should.be.eql(fileDetails.size);
+                    result[i].isDirectory.should.be.eql(fileDetails.isDirectory);
                 });
                 done();
             })
-            .catch(done); // Catch any unexpected errors
     });
 
+
     it('Should return the correct details for tmp generated directory', done => {
-        app(path.join(ROOT, 'tmp1'))
+
+        app(ROOT + '/tmp1')
             .then(result => {
                 Array.isArray(result).should.eql(true);
                 result.length.should.eql(4);
@@ -87,13 +83,13 @@ describe('fs_intermediate', function() {
                 expected[2] = expected[3];
                 expected[3] = temp;
                 expected.forEach((fileDetails, i) => {
-                    result[i].fileName.should.eql(fileDetails.fileName);
-                    result[i].filePath.should.eql(fileDetails.path);
-                    result[i].createdAt.should.eql(fileDetails.createdAt);
-                    result[i].isDirectory.should.eql(fileDetails.isDirectory);
+                    result[i].fileName.should.be.eql(fileDetails.fileName);
+                    result[i].filePath.should.be.eql(fileDetails.path);
+                    result[i].createdAt.should.be.eql(fileDetails.createdAt);
+                    result[i].isDirectory.should.be.eql(fileDetails.isDirectory);
                 });
-                done();
+                done()
             })
-            .catch(done); // Handle any unexpected errors
-    });
+
+    })
 });
