@@ -17,9 +17,11 @@ const getFileTree = async (dirPath) => {
         } else if (stats.isDirectory()) {
             const files = await fs.readdir(resolvedPath);
             console.log(`Files: ${files}`);
-            const fileDetailsPromises = files.map(file => 
+
+            const fileDetailsPromises = files.map(file =>
                 getFileMetadata(path.join(resolvedPath, file))
             );
+
             const fileDetails = await Promise.all(fileDetailsPromises);
             return fileDetails.sort((a, b) => a.fileName.localeCompare(b.fileName));
         }
@@ -40,14 +42,22 @@ const getFileMetadata = async (filePath) => {
     return {
         fileName: path.basename(filePath),
         filePath: formattedPath,
-        size: stats.size,
-        createdAt: createdAt,
+        path: formattedPath,
         isDirectory: stats.isDirectory(),
+        ...(stats.isDirectory() && { children: await getDirectoryChildren(filePath) })
     };
 };
 
+const getDirectoryChildren = async (dirPath) => {
+    const files = await fs.readdir(dirPath);
+    const fileDetailsPromises = files.map(file =>
+        getFileMetadata(path.join(dirPath, file))
+    );
+    return await Promise.all(fileDetailsPromises);
+};
+
 const main = async () => {
-    const testPath = path.join(__dirname, 'tmp', 'test_dir');
+    const testPath = path.join(__dirname, 'tmp');
     try {
         const result = await getFileTree(testPath);
         console.log(JSON.stringify(result, null, 2));
@@ -57,4 +67,4 @@ const main = async () => {
 };
 
 main();
-module.exports = getFileTree; // Change this to export getFileTree instead of main
+module.exports = getFileTree;
