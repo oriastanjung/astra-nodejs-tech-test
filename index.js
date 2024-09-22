@@ -7,8 +7,7 @@ const getFileTree = async (dirPath) => {
         const stats = await fs.stat(resolvedPath);
 
         if (stats.isFile()) {
-            const fileMetadata = await getFileMetadata(resolvedPath);
-            return [fileMetadata];
+            return [await getFileMetadata(resolvedPath)];
         } else if (stats.isDirectory()) {
             const files = await fs.readdir(resolvedPath);
             const fileDetailsPromises = files.map(file => getFileMetadata(path.join(resolvedPath, file)));
@@ -18,26 +17,22 @@ const getFileTree = async (dirPath) => {
     } catch (error) {
         if (error.code === 'ENOENT') {
             throw new Error('Invalid Path');
-        } else {
-            throw error;
         }
+        throw error; 
     }
 };
 
 const getFileMetadata = async (filePath) => {
     const stats = await fs.stat(filePath);
-    const createdAt = stats.birthtime.toISOString().split('T')[0]; 
+    const createdAt = stats.birthtime.toISOString().split('T')[0];
 
-    
     const projectRoot = path.resolve(__dirname);
-    
-    
     const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, '/');
-    const formattedPath = `/${relativePath.replace(/^(..\/)+/, '')}`; 
+    const formattedPath = `/${relativePath.replace(/^(..\/)+/, '')}`;
 
     return {
         fileName: path.basename(filePath),
-        filePath: formattedPath, 
+        filePath: formattedPath,
         size: stats.size,
         createdAt: createdAt,
         isDirectory: stats.isDirectory(),
@@ -45,7 +40,7 @@ const getFileMetadata = async (filePath) => {
 };
 
 const main = async () => {
-    const testPath = path.join(__dirname, 'tmp', 'test_dir'); 
+    const testPath = path.join(__dirname, 'tmp', 'test_dir');
     try {
         const result = await getFileTree(testPath);
         console.log(JSON.stringify(result, null, 2));
@@ -56,5 +51,3 @@ const main = async () => {
 
 module.exports = main;
 
-
-main();
