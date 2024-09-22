@@ -2,8 +2,6 @@ const fs = require("fs").promises;
 const path = require("path");
 
 const getFileTree = async (dirPath) => {
-  const start = Date.now();
-  // ... existing code ...
   try {
     console.log(`Resolving path: ${dirPath}`);
     const resolvedPath = path.resolve(dirPath);
@@ -25,8 +23,6 @@ const getFileTree = async (dirPath) => {
       );
 
       const fileDetails = await Promise.all(fileDetailsPromises);
-      console.log(`Execution time: ${Date.now() - start} ms`);
-
       return fileDetails.sort((a, b) => a.fileName.localeCompare(b.fileName));
     }
   } catch (error) {
@@ -42,14 +38,25 @@ const getFileMetadata = async (filePath) => {
   const projectRoot = path.resolve(__dirname);
   const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, "/");
   const formattedPath = `/${relativePath.replace(/^(..\/)+/, "")}`;
-
+ 
   return {
     fileName: path.basename(filePath),
     filePath: formattedPath,
     size: stats.size,
     isDirectory: stats.isDirectory(),
     createdAt: createdAt,
+    ...(stats.isDirectory() && {
+      children: await getDirectoryChildren(filePath),
+    }),
   };
+};
+
+const getDirectoryChildren = async (dirPath) => {
+  const files = await fs.readdir(dirPath);
+  const fileDetailsPromises = files.map((file) =>
+    getFileMetadata(path.join(dirPath, file))
+  );
+  return await Promise.all(fileDetailsPromises);
 };
 
 const main = async () => {
