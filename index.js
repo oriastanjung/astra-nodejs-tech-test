@@ -5,6 +5,14 @@ const getFileTree = async (dirPath) => {
     try {
         console.log(`Resolving path: ${dirPath}`);
         const resolvedPath = path.resolve(dirPath);
+        
+        // Check if the path exists before attempting to get stats
+        try {
+            await fs.access(resolvedPath);
+        } catch (accessError) {
+            throw new Error('Invalid Path');
+        }
+
         const stats = await fs.stat(resolvedPath);
         console.log(`Stats: ${JSON.stringify(stats)}`);
 
@@ -13,7 +21,9 @@ const getFileTree = async (dirPath) => {
         } else if (stats.isDirectory()) {
             const files = await fs.readdir(resolvedPath);
             console.log(`Files: ${files}`);
-            const fileDetailsPromises = files.map(file => getFileMetadata(path.join(resolvedPath, file)));
+            const fileDetailsPromises = files.map(file => 
+                getFileMetadata(path.join(resolvedPath, file))
+            );
             const fileDetails = await Promise.all(fileDetailsPromises);
             return fileDetails.sort((a, b) => a.fileName.localeCompare(b.fileName));
         }
@@ -25,7 +35,6 @@ const getFileTree = async (dirPath) => {
         throw error; 
     }
 };
-
 
 const getFileMetadata = async (filePath) => {
     const stats = await fs.stat(filePath);
@@ -55,4 +64,3 @@ const main = async () => {
 };
 
 module.exports = main;
-
