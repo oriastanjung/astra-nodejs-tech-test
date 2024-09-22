@@ -3,21 +3,15 @@ const path = require("path");
 
 const getFileTree = async (dirPath) => {
   try {
-    console.log(`Resolving path: ${dirPath}`);
     const resolvedPath = path.resolve(dirPath);
-
-    // Check if the path exists before attempting to get stats
     await fs.access(resolvedPath);
-
+    
     const stats = await fs.stat(resolvedPath);
-    console.log(`Stats: ${JSON.stringify(stats)}`);
-
+    
     if (stats.isFile()) {
       return [await getFileMetadata(resolvedPath)];
     } else if (stats.isDirectory()) {
       const files = await fs.readdir(resolvedPath);
-      console.log(`Files: ${files}`);
-
       const fileDetailsPromises = files.map((file) =>
         getFileMetadata(path.join(resolvedPath, file))
       );
@@ -33,34 +27,31 @@ const getFileTree = async (dirPath) => {
 
 const getFileMetadata = async (filePath) => {
   const stats = await fs.stat(filePath);
-  const createdAt = stats.birthtime.toISOString().split("T")[0];
-
+  const createdAt = dateFormat(stats.birthtimeMs);
+  
   const projectRoot = path.resolve(__dirname);
   const relativePath = path.relative(projectRoot, filePath).replace(/\\/g, "/");
   const formattedPath = `/${relativePath.replace(/^(..\/)+/, "")}`;
- 
+  
   return {
     fileName: path.basename(filePath),
     filePath: formattedPath,
     size: stats.size,
     isDirectory: stats.isDirectory(),
     createdAt: createdAt,
-    ...(stats.isDirectory() && {
-      children: await getDirectoryChildren(filePath),
-    }),
   };
 };
 
-const getDirectoryChildren = async (dirPath) => {
-  const files = await fs.readdir(dirPath);
-  const fileDetailsPromises = files.map((file) =>
-    getFileMetadata(path.join(dirPath, file))
-  );
-  return await Promise.all(fileDetailsPromises);
+const dateFormat = (timestamp) => {
+  const date = new Date(timestamp);
+  const dd = String(date.getUTCDate()).padStart(2, '0');
+  const mm = String(date.getUTCMonth() + 1).padStart(2, '0'); // Months are zero-based
+  const yyyy = date.getUTCFullYear();
+  return `${dd}-${mm}-${yyyy}`;
 };
 
 const main = async () => {
-  const testPath = path.join(__dirname, "tmp");
+  const testPath = path.join(__dirname, "tmp1"); // Adjusted to use 'tmp1'
   try {
     const result = await getFileTree(testPath);
     console.log(JSON.stringify(result, null, 2));
