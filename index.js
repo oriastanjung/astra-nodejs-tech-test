@@ -3,24 +3,29 @@ const path = require('path');
 
 const getFileTree = async (dirPath) => {
     try {
+        console.log(`Resolving path: ${dirPath}`);
         const resolvedPath = path.resolve(dirPath);
         const stats = await fs.stat(resolvedPath);
+        console.log(`Stats: ${JSON.stringify(stats)}`);
 
         if (stats.isFile()) {
             return [await getFileMetadata(resolvedPath)];
         } else if (stats.isDirectory()) {
             const files = await fs.readdir(resolvedPath);
+            console.log(`Files: ${files}`);
             const fileDetailsPromises = files.map(file => getFileMetadata(path.join(resolvedPath, file)));
             const fileDetails = await Promise.all(fileDetailsPromises);
             return fileDetails.sort((a, b) => a.fileName.localeCompare(b.fileName));
         }
     } catch (error) {
+        console.error(`Error: ${error.message}`);
         if (error.code === 'ENOENT') {
             throw new Error('Invalid Path');
         }
         throw error; 
     }
 };
+
 
 const getFileMetadata = async (filePath) => {
     const stats = await fs.stat(filePath);
