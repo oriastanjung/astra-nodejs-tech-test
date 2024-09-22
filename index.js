@@ -42,8 +42,9 @@ const getFileMetadata = async (filePath) => {
     return {
         fileName: path.basename(filePath),
         filePath: formattedPath,
-        path: formattedPath,
+        size: stats.size,
         isDirectory: stats.isDirectory(),
+        createdAt: createdAt,
         ...(stats.isDirectory() && { children: await getDirectoryChildren(filePath) })
     };
 };
